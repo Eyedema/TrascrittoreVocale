@@ -1,3 +1,4 @@
+from dataclasses import dataclass, field
 from pathlib import Path
 from telegram import Update
 from telegram.ext import (
@@ -11,7 +12,7 @@ import os
 
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-WHITELIST = [23616716, 20540653]
+GEMINI = genai.Client(api_key=GEMINI_API_KEY)
 PROMPT = """
 ## Istruzioni
 
@@ -24,14 +25,36 @@ PROMPT = """
 4. **Restituisci solo il testo:** Restituisci *esclusivamente* il testo post-processato in italiano, senza ulteriori commenti o spiegazioni.
 """
 
-client = genai.Client(api_key=GEMINI_API_KEY)
+@dataclass
+class WhitelistLoader:
+    whitelist: list[int] = field(default_factory=list)
+    file_path: str = "whitelist.txt"
+
+    @property
+    def load_from_file(self) -> list[int]:
+        try:
+            with open(self.file_path, "r") as file:
+                for line in file:
+                    line = line.strip()
+                    if line.isdigit():
+                        self.whitelist.append(int(line))
+            return self.whitelist
+        except FileNotFoundError:
+            print(f"Errore: Il file '{self.file_path}' non esiste.")
+            return self.whitelist
+        except ValueError as e:
+            print(f"Errore nel parsing del file: {e}")
+            return self.whitelist
+
+
+WHITELIST = WhitelistLoader()
 
 
 async def transcribe_audio(audio_file_path: Path) -> str | None:
     try:
-        myfile = client.files.upload(file=audio_file_path)
+        myfile = GEMINI.files.upload(file=audio_file_path)
 
-        response = client.models.generate_content(
+        response = GEMINI.models.generate_content(
             model="gemini-2.0-flash", contents=[PROMPT, myfile]
         )
 
@@ -45,19 +68,18 @@ async def handle_audio(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     if not user_id:
         return
     user_id = user_id.id
-    print(user_id)
-    if user_id in WHITELIST:
-        audio_file = await context.bot.getFile(update.message.voice.file_id)
+    if user_id in WHITELIST.load_from_file:
+        audio_file = await context.bot.getFile(update.message.voice.file_id)  # type: ignore
         audio_file_path = await audio_file.download_to_drive()
         transcription = await transcribe_audio(audio_file_path)
         await context.bot.send_message(
-            chat_id=update.effective_chat.id,
+            chat_id=update.effective_chat.id,  # type: ignore
             text=f"Trascrizione: {transcription}",
         )
         os.remove(audio_file_path)
     else:
         await context.bot.send_message(
-            chat_id=update.effective_chat.id,
+            chat_id=update.effective_chat.id,  # type: ignore
             text="Non sei autorizzato a utilizzare questo bot.",
         )
 
