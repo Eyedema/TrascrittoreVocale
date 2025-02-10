@@ -1,2 +1,5 @@
 .venv
 .env
+
+cfg.py
+whitelist.txt
