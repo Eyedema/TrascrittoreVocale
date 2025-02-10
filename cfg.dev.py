@@ -1,8 +1,17 @@
-
+# Token del bot Telegram.
+# Questo token è necessario per autenticare il bot e permettergli di interagire con l'API di Telegram.
+# Puoi ottenere il token creando un bot tramite BotFather su Telegram.
 TELEGRAM_BOT_TOKEN = ''
 
+# Chiave API di Gemini.
+# Questa chiave è necessaria per accedere ai servizi di Gemini, come la trascrizione audio.
+# Puoi ottenere la chiave registrandoti sulla piattaforma Gemini e creando un progetto.
 GEMINI_API_KEY = ''
 
+# Prompt per la trascrizione audio.
+# Questo prompt viene inviato a Gemini insieme al file audio per guidare il processo di trascrizione.
+# Contiene istruzioni specifiche sul tipo di output desiderato, come la lingua, il formato e il post-processing.
+# La variabile {audio_file_path} verrà sostituita con il percorso effettivo del file audio prima dell'invio a Gemini.
 PROMPT = '''
 ## Istruzioni
 
