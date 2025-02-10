@@ -32,6 +32,7 @@ class WhitelistLoader:
 
     @property
     def load_from_file(self) -> list[int]:
+        self.whitelist = []
         try:
             with open(self.file_path, "r") as file:
                 for line in file:
