@@ -1,3 +1,4 @@
+from pathlib import Path
 from telegram import Update
 from telegram.ext import (
     Application,
@@ -26,7 +27,7 @@ PROMPT = """
 client = genai.Client(api_key=GEMINI_API_KEY)
 
 
-async def transcribe_audio(audio_file_path):
+async def transcribe_audio(audio_file_path: Path) -> str | None:
     try:
         myfile = client.files.upload(file=audio_file_path)
 
@@ -35,7 +36,7 @@ async def transcribe_audio(audio_file_path):
         )
 
         return response.text
-    except Exception as e:  # Qualsiasi altro errore generico
+    except Exception as e:
         return f"Errore: {str(e)}"
 
 
